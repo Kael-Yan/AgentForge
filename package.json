@@ -1,0 +1,24 @@
+{
+  "name": "agentforge",
+  "version": "2.0.0",
+  "private": true,
+  "description": "AgentForge — CEO + 7 core roles with Paperclip-style heartbeat state machine, dual QC Gate, 9 Skills, KPI/Observations tracking, lean-ctx token optimization, and Desktop MCP for macOS control.",
+  "license": "MIT",
+  "type": "module",
+  "author": "Kael Yan",
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "desktop-server": "bun run src/mcp-servers/desktop/server.ts",
+    "core-tools-server": "bun run src/mcp-servers/core-tools/server.ts",
+    "kg-init": "bun run src/multi-role/knowledge-base/seed-graph.ts",
+    "status": "bun run src/index.ts",
+    "help": "bun run src/index.ts help",
+    "roles": "bun run src/index.ts -- roles"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "bellamem": "^0.3.0-alpha.2",
+    "vectordb": "^0.21.2",
+    "@xenova/transformers": "^2.17.2"
+  }
+}

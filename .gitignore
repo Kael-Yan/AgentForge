@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+coverage/
+.cache/
+.turbo/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment (API keys - DO NOT COMMIT)
+.env
+.env.*
+!.env.example
+
+# Personal data
+.claude/agent-memory/
+.claude/llmwiki/
+.claude/knowledge-vectordb/
+.claude/knowledge-graph.json
+.claude/settings.local.json
+.claude/hooks/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Misc
+*.log
+.lean-ctx/
+.kiro/

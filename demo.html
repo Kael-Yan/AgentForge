@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentForge — CLI Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Space+Grotesk:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --bg: #F5F5F0;
+    --fg: #1A1A1A;
+    --coral: #E85D4E;
+    --lime: #C4D94E;
+    --lavender: #C5B5E0;
+    --sky: #8BB4F7;
+    --violet: #A06CE8;
+    --yellow: #F2D160;
+    --peach: #F5B895;
+    --mint: #A8E6CF;
+    --outline: #1E1E1E;
+    --shadow: rgba(26, 26, 26, 0.08);
+    --font-display: 'Bodoni Moda', serif;
+    --font-body: 'Space Grotesk', sans-serif;
+    --font-cn: 'Noto Sans SC', sans-serif;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--fg);
+  }
+
+  .grain-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.04;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 200px 200px;
+  }
+
+  .presentation { width: 100%; height: 100%; position: relative; }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 3rem 4rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+  }
+
+  .slide.active { opacity: 1; pointer-events: all; }
+
+  /* Pill badges */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    border: 2px solid var(--outline);
+    font-family: var(--font-body);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .pill-coral { background: var(--coral); }
+  .pill-lime { background: var(--lime); }
+  .pill-lavender { background: var(--lavender); }
+  .pill-sky { background: var(--sky); }
+  .pill-violet { background: var(--violet); }
+  .pill-yellow { background: var(--yellow); }
+  .pill-peach { background: var(--peach); }
+  .pill-mint { background: var(--mint); }
+
+  /* Navigation dots */
+  .nav-dots {
+    position: fixed;
+    right: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    z-index: 100;
+  }
+
+  .nav-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 2px solid var(--outline);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .nav-dot.active { background: var(--outline); transform: scale(1.2); }
+
+  .slide-counter {
+    position: fixed;
+    bottom: 2rem; right: 2rem;
+    font-family: var(--font-body);
+    font-size: 0.75rem; font-weight: 500;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--fg); opacity: 0.5;
+    z-index: 100;
+  }
+
+  .nav-hint {
+    position: fixed;
+    bottom: 2rem; left: 2rem;
+    font-family: var(--font-body);
+    font-size: 0.65rem; font-weight: 500;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--fg); opacity: 0.3;
+    z-index: 100;
+  }
+
+  /* ============================================
+     SLIDE 1 — Title / Hero
+     ============================================ */
+  .slide-1 {
+    justify-content: center;
+    align-items: center;
+    background:
+      radial-gradient(ellipse at 20% 80%, rgba(200, 217, 78, 0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(139, 180, 247, 0.12) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, rgba(245, 184, 149, 0.08) 0%, transparent 60%),
+      var(--bg);
+  }
+
+  .slide-1 .deco-pills {
+    position: absolute; inset: 0;
+    pointer-events: none; overflow: hidden;
+  }
+
+  .slide-1 .deco-pill {
+    position: absolute; border-radius: 9999px;
+    border: 2px solid var(--outline);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-body); font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+
+  .slide-1 .title-pill {
+    position: relative; z-index: 2;
+    background: var(--yellow);
+    padding: 1.5rem 3.5rem;
+    border-radius: 9999px;
+    border: 2px solid var(--outline);
+    margin-bottom: 2rem;
+    font-family: var(--font-body);
+    font-weight: 600; font-size: 0.85rem;
+    letter-spacing: 0.12em; text-transform: uppercase;
+  }
+
+  .slide-1 .main-title {
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 7vw, 6rem);
+    font-weight: 800; line-height: 0.9;
+    text-align: center;
+    letter-spacing: -0.02em;
+    color: var(--fg);
+    position: relative; z-index: 2;
+  }
+
+  .slide-1 .main-title .cn-sub {
+    display: block;
+    font-family: var(--font-cn);
+    font-size: clamp(1.2rem, 2.5vw, 2rem);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    margin-top: 0.5rem;
+    color: var(--fg);
+    opacity: 0.75;
+  }
+
+  .slide-1 .main-title .subtitle {
+    display: block;
+    font-family: var(--font-body);
+    font-size: clamp(0.8rem, 1.4vw, 1rem);
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-top: 1.5rem;
+    color: var(--fg); opacity: 0.5;
+  }
+
+  .slide-1 .tag-row {
+    position: relative; z-index: 2;
+    display: flex; gap: 1rem; margin-top: 2rem;
+    flex-wrap: wrap; justify-content: center;
+  }
+
+  .slide-1 .tag-row .tag {
+    padding: 0.5rem 1.5rem;
+    border-radius: 9999px;
+    border: 2px solid var(--outline);
+    font-family: var(--font-cn);
+    font-size: 0.8rem; font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  /* ============================================
+     SLIDE 2 — CLI Commands
+     ============================================ */
+  .slide-2 {
+    justify-content: center;
+    background:
+      radial-gradient(ellipse at 0% 50%, rgba(160, 108, 232, 0.08) 0%, transparent 50%),
+      var(--bg);
+  }
+
+  .slide-2 .slide-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem; align-items: center;
+    max-width: 1300px; width: 100%;
+    margin: 0 auto;
+  }
+
+  .slide-2 .left-content {
+    display: flex; flex-direction: column; gap: 1.5rem;
+  }
+
+  .slide-2 .left-content .section-pill {
+    display: inline-block;
+    background: var(--lavender);
+    padding: 0.4rem 1.2rem;
+    border-radius: 9999px;
+    border: 2px solid var(--outline);
+    font-size: 0.7rem; font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    align-self: flex-start;
+  }
+
+  .slide-2 .left-content h2 {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    font-weight: 700; line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+
+  .slide-2 .left-content p {
+    font-family: var(--font-cn);
+    font-size: clamp(0.9rem, 1.1vw, 1.1rem);
+    line-height: 1.6; opacity: 0.65;
+    max-width: 90%;
+  }
+
+  .slide-2 .right-visual {
+    background: #fff;
+    border: 2px solid var(--outline);
+    border-radius: 2rem;
+    padding: 2rem;
+    box-shadow: 8px 8px 0 var(--shadow);
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 0.8rem;
+    line-height: 1.8;
+  }
+
+  .slide-2 .right-visual .prompt { color: var(--coral); font-weight: 600; }
+  .slide-2 .right-visual .flag { color: var(--violet); }
+  .slide-2 .right-visual .arg { color: var(--sky); }
+  .slide-2 .right-visual .comment { color: #999; margin-left: 0.5rem; }
+
+  /* ============================================
+     SLIDE 3 — Tools & MCP
+     ============================================ */
+  .slide-3 {
+    justify-content: center;
+    background:
+      radial-gradient(ellipse at 100% 0%, rgba(232, 93, 78, 0.06) 0%, transparent 40%),
+      radial-gradient(ellipse at 0% 100%, rgba(139, 180, 247, 0.08) 0%, transparent 40%),
+      var(--bg);
+  }
+
+  .slide-3 .slide-inner {
+    max-width: 1200px; width: 100%;
+    margin: 0 auto;
+    display: flex; flex-direction: column; gap: 2.5rem;
+  }
+
+  .slide-3 .slide-header { text-align: center; }
+
+  .slide-3 .slide-header .header-pill {
+    display: inline-block;
+    background: var(--lavender);
+    padding: 0.4rem 1.2rem;
+    border-radius: 9999px;
+    border: 2px solid var(--outline);
+    font-size: 0.7rem; font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1rem;
+  }
+
+  .slide-3 .slide-header h2 {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    font-weight: 700; letter-spacing: -0.01em;
+  }
+
+  .slide-3 .slide-header .cn-desc {
+    font-family: var(--font-cn);
+    font-size: 1rem; opacity: 0.5; margin-top: 0.5rem;
+  }
+
+  .slide-3 .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  .slide-3 .card {
+    background: #fff;
+    border: 2px solid var(--outline);
+    border-radius: 2rem;
+    padding: 2rem 1.5rem;
+    display: flex; flex-direction: column; gap: 1rem;
+    box-shadow: 6px 6px 0 var(--shadow);
+  }
+
+  .slide-3 .card .card-icon {
+    width: 50px; height: 50px;
+    border-radius: 50%;
+    border: 2px solid var(--outline);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .slide-3 .card h3 {
+    font-family: var(--font-display);
+    font-size: 1.3rem; font-weight: 700; line-height: 1.1;
+  }
+
+  .slide-3 .card .tool-list {
+    display: flex; flex-wrap: wrap; gap: 0.4rem;
+  }
+
+  .slide-3 .card .tool-list .t {
+    padding: 0.25rem 0.7rem;
+    border-radius: 9999px;
+    border: 2px solid var(--outline);
+    font-size: 0.65rem; font-weight: 500;
+    font-family: monospace;
+  }
+
+  .slide-3 .card p {
+    font-family: var(--font-cn);
+    font-size: 0.85rem; line-height: 1.5; opacity: 0.6;
+  }
+
+  .slide-3 .card .highlight {
+    font-family: var(--font-cn);
+    font-size: 0.78rem; font-weight: 600;
+    padding: 0.4rem 0.8rem;
+    border-radius: 9999px;
+    border: 2px solid var(--outline);
+    display: inline-block;
+    align-self: flex-start;
+  }
+
+  /* ============================================
+     SLIDE 2 — 18 Roles Grid (NEW)
+     ============================================ */
+  .slide-roles {
+    justify-content: center;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(160, 108, 232, 0.06) 0%, transparent 40%),
+      radial-gradient(ellipse at 0% 100%, rgba(139, 180, 247, 0.06) 0%, transparent 40%),
+      var(--bg);
+  }
+
+  .slide-roles .slide-inner {
+    max-width: 1300px; width: 100%; margin: 0 auto;
+    display: flex; flex-direction: column; gap: 1.5rem;
+  }
+
+  .slide-roles .slide-inner h2 {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    font-weight: 700; letter-spacing: -0.01em;
+    text-align: center;
+  }
+
+  .slide-roles .layer-section {
+    display: flex; flex-direction: column; gap: 0.6rem;
+  }
+
+  .slide-roles .layer-label {
+    font-family: var(--font-body);
+    font-size: 0.65rem; font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    opacity: 0.4;
+    padding-left: 0.3rem;
+  }
+
+  .slide-roles .role-chips {
+    display: flex; flex-wrap: wrap; gap: 0.5rem;
+  }
+
+  .slide-roles .role-chip {
+    padding: 0.4rem 1rem;
+    border-radius: 9999px;
+    border: 2px solid var(--outline);
+    font-family: var(--font-cn);
+    font-size: 0.75rem; font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .slide-roles .role-new {
+    position: relative;
+  }
+
+  .slide-roles .role-new::after {
+    content: 'NEW';
+    position: absolute;
+    top: -8px; right: -6px;
+    background: var(--coral);
+    color: #fff;
+    font-family: var(--font-body);
+    font-size: 0.5rem; font-weight: 700;
+    padding: 1px 5px; border-radius: 9999px;
+    border: 1.5px solid var(--outline);
+    letter-spacing: 0.05em;
+  }
+
+  /* ============================================
+     SLIDE 3 — Dual MVP Mode (NEW)
+     ============================================ */
+  .slide-mvp {
+    justify-content: center;
+    background:
+      radial-gradient(ellipse at 50% 50%, rgba(245, 209, 96, 0.1) 0%, transparent 50%),
+      radial-gradient(ellipse at 0% 50%, rgba(200, 217, 78, 0.06) 0%, transparent 40%),
+      var(--bg);
+  }
+
+  .slide-mvp .slide-inner {
+    max-width: 1200px; width: 100%; margin: 0 auto;
+    display: flex; flex-direction: column; gap: 2rem;
+  }
+
+  .slide-mvp .mvp-header {
+    text-align: center;
+  }
+
+  .slide-mvp .mvp-header .mvp-pill {
+    display: inline-block;
+    background: var(--yellow);
+    padding: 0.4rem 1.2rem;
+    border-radius: 9999px;
+    border: 2px solid var(--outline);
+    font-size: 0.7rem; font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.8rem;
+  }
+
+  .slide-mvp .mvp-header h2 {
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
+    font-weight: 700;
+  }
+
+  .slide-mvp .mvp-header .mvp-desc {
+    font-family: var(--font-cn);
+    font-size: 0.9rem; opacity: 0.5; margin-top: 0.4rem;
+  }
+
+  .slide-mvp .mvp-flow {
+    display: flex; align-items: center; justify-content: center;
+    gap: 2rem; flex-wrap: wrap;
+  }
+
+  .slide-mvp .mvp-role {
+    background: #fff;
+    border: 2px solid var(--outline);
+    border-radius: 2rem;
+    padding: 2rem;
+    width: 300px;
+    text-align: center;
+    box-shadow: 8px 8px 0 var(--shadow);
+  }
+
+  .slide-mvp .mvp-role .role-avatar {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    border: 2px solid var(--outline);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; font-weight: 700;
+    margin: 0 auto 1rem;
+  }
+
+  .slide-mvp .mvp-role h3 {
+    font-family: var(--font-display);
+    font-size: 1.3rem; font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+
+  .slide-mvp .mvp-role .cn-title {
+    font-family: var(--font-cn);
+    font-size: 0.8rem; opacity: 0.5;
+    margin-bottom: 0.8rem;
+  }
+
+  .slide-mvp .mvp-role .duties {
+    display: flex; flex-wrap: wrap; gap: 0.35rem;
+    justify-content: center;
+  }
+
+  .slide-mvp .mvp-role .duty {
+    padding: 0.2rem 0.7rem;
+    border-radius: 9999px;
+    border: 1.5px solid var(--outline);
+    font-family: var(--font-cn);
+    font-size: 0.68rem;
+  }
+
+  .slide-mvp .mvp-arrow {
+    font-size: 2rem; font-weight: 700;
+    color: var(--coral);
+    display: flex; flex-direction: column;
+    align-items: center; gap: 0.3rem;
+  }
+
+  .slide-mvp .mvp-arrow .cycle {
+    font-family: var(--font-body);
+    font-size: 0.6rem; font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--fg);
+    opacity: 0.4;
+  }
+
+  .slide-mvp .mvp-bottom {
+    text-align: center;
+  }
+
+  .slide-mvp .mvp-bottom .speed-tag {
+    display: inline-block;
+    background: var(--mint);
+    padding: 0.5rem 1.5rem;
+    border-radius: 9999px;
+    border: 2px solid var(--outline);
+    font-family: var(--font-cn);
+    font-size: 0.8rem; font-weight: 600;
+  }
+
+  /* ============================================
+     SLIDE 6 — Architecture Summary (NEW)
+     ============================================ */
+  .slide-summary {
+    justify-content: center;
+    background:
+      radial-gradient(ellipse at 80% 20%, rgba(200, 217, 78, 0.1) 0%, transparent 40%),
+      radial-gradient(ellipse at 20% 80%, rgba(245, 184, 149, 0.1) 0%, transparent 40%),
+      var(--bg);
+  }
+
+  .slide-summary .slide-inner {
+    max-width: 1100px; width: 100%; margin: 0 auto;
+    display: flex; flex-direction: column; gap: 2rem;
+  }
+
+  .slide-summary .summary-header {
+    text-align: center;
+  }
+
+  .slide-summary .summary-header h2 {
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
+    font-weight: 700;
+  }
+
+  .slide-summary .summary-header p {
+    font-family: var(--font-cn);
+    font-size: 0.9rem; opacity: 0.5; margin-top: 0.3rem;
+  }
+
+  .slide-summary .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  .slide-summary .compare-card {
+    background: #fff;
+    border: 2px solid var(--outline);
+    border-radius: 2rem;
+    padding: 2rem;
+    box-shadow: 6px 6px 0 var(--shadow);
+  }
+
+  .slide-summary .compare-card h3 {
+    font-family: var(--font-display);
+    font-size: 1.2rem; font-weight: 700;
+    margin-bottom: 0.8rem;
+  }
+
+  .slide-summary .compare-card .mode-label {
+    display: inline-block;
+    padding: 0.25rem 0.8rem;
+    border-radius: 9999px;
+    border: 2px solid var(--outline);
+    font-size: 0.65rem; font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.8rem;
+  }
+
+  .slide-summary .compare-card ul {
+    list-style: none;
+    display: flex; flex-direction: column; gap: 0.4rem;
+  }
+
+  .slide-summary .compare-card ul li {
+    font-family: var(--font-cn);
+    font-size: 0.8rem; line-height: 1.5;
+    padding-left: 1.2rem; position: relative;
+  }
+
+  .slide-summary .compare-card ul li::before {
+    content: '→';
+    position: absolute; left: 0;
+    opacity: 0.4;
+  }
+
+  .slide-summary .bottom-note {
+    text-align: center;
+    display: flex; gap: 1rem;
+    justify-content: center; flex-wrap: wrap;
+  }
+
+  .slide-summary .bottom-note .note-pill {
+    padding: 0.5rem 1.2rem;
+    border-radius: 9999px;
+    border: 2px solid var(--outline);
+    font-family: var(--font-cn);
+    font-size: 0.78rem; font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<div class="grain-overlay"></div>
+
+<div class="presentation">
+
+  <!-- ========== SLIDE 1: Title ========== -->
+  <div class="slide slide-1 active" data-slide="1">
+    <div class="deco-pills">
+      <div class="deco-pill pill-lime" style="width:120px;height:48px;top:12%;left:8%;transform:rotate(-8deg);font-size:0.7rem;">CLI</div>
+      <div class="deco-pill pill-sky" style="width:100px;height:44px;top:15%;right:10%;transform:rotate(12deg);font-size:0.65rem;">MCP</div>
+      <div class="deco-pill pill-coral" style="width:80px;height:80px;border-radius:50%;bottom:15%;left:12%;font-size:0.6rem;">AI</div>
+      <div class="deco-pill pill-lavender" style="width:110px;height:45px;bottom:18%;right:14%;transform:rotate(-6deg);font-size:0.7rem;">TOOLS</div>
+      <div class="deco-pill pill-peach" style="width:90px;height:38px;top:45%;left:4%;transform:rotate(15deg);font-size:0.55rem;">CEO</div>
+      <div class="deco-pill pill-mint" style="width:70px;height:36px;top:50%;right:6%;transform:rotate(-14deg);font-size:0.55rem;">KPI</div>
+    </div>
+    <div class="title-pill">AgentForge CLI v2.0</div>
+    <h1 class="main-title">
+      AgentForge
+      <span class="cn-sub">一個命令列，背後是一整個 AI 開發團隊</span>
+      <span class="subtitle">CEO Quality Gate · 18 Roles · 7 Tools · 2 MCP Servers · Dual-Mode</span>
+    </h1>
+    <div class="tag-row">
+      <span class="tag pill-lime">18 個 AI 角色</span>
+      <span class="tag pill-sky">7 個輕量工具</span>
+      <span class="tag pill-coral">2 個 MCP Server</span>
+      <span class="tag pill-lavender">桌面控制</span>
+      <span class="tag pill-peach">web_search</span>
+    </div>
+  </div>
+
+  <!-- ========== SLIDE 2: 18 Roles ========== -->
+  <div class="slide slide-roles" data-slide="2">
+    <div class="slide-inner">
+      <h2>18 個 AI 角色，還原真實開發團隊</h2>
+      <div class="layer-section">
+        <div class="layer-label">決策層 · Decision</div>
+        <div class="role-chips">
+          <span class="role-chip pill-yellow">CEO 總控</span>
+          <span class="role-chip pill-yellow">系統架構師</span>
+          <span class="role-chip pill-yellow">專案經理</span>
+          <span class="role-chip pill-yellow">個人戰略顧問</span>
+          <span class="role-chip pill-yellow">財務規劃師</span>
+          <span class="role-chip pill-yellow role-new">Story Master 關主</span>
+        </div>
+      </div>
+      <div class="layer-section">
+        <div class="layer-label">產品層 · Product</div>
+        <div class="role-chips">
+          <span class="role-chip pill-lavender">產品經理</span>
+          <span class="role-chip pill-lavender">品牌設計師</span>
+        </div>
+      </div>
+      <div class="layer-section">
+        <div class="layer-label">執行層 · Execution</div>
+        <div class="role-chips">
+          <span class="role-chip pill-sky">前端工程師</span>
+          <span class="role-chip pill-sky">後端工程師</span>
+          <span class="role-chip pill-sky">DevOps/SRE 工程師</span>
+          <span class="role-chip pill-sky">QA 測試工程師</span>
+          <span class="role-chip pill-sky">銷售專員</span>
+          <span class="role-chip pill-sky">運營專員</span>
+          <span class="role-chip pill-sky">客服專員</span>
+          <span class="role-chip pill-sky">財務助理</span>
+          <span class="role-chip pill-sky">接單顧問</span>
+          <span class="role-chip pill-coral role-new">Builder 全端執行者</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SLIDE 3: Dual MVP Mode ========== -->
+  <div class="slide slide-mvp" data-slide="3">
+    <div class="slide-inner">
+      <div class="mvp-header">
+        <div class="mvp-pill">快速模式 New</div>
+        <h2>雙人 MVP：最小閉環，最快驗證</h2>
+        <div class="mvp-desc">不經層層審核，適合 Side Project、早期原型、快速迭代</div>
+      </div>
+      <div class="mvp-flow">
+        <div class="mvp-role">
+          <div class="role-avatar pill-yellow">S</div>
+          <h3>Story Master</h3>
+          <div class="cn-title">關主 · 只管「做什麼」和「哪裡錯」</div>
+          <div class="duties">
+            <span class="duty pill-yellow">定義需求</span>
+            <span class="duty pill-yellow">派發任務</span>
+            <span class="duty pill-yellow">驗收結果</span>
+            <span class="duty pill-yellow">定位錯誤</span>
+            <span class="duty pill-yellow">不寫代碼</span>
+          </div>
+        </div>
+        <div class="mvp-arrow">
+          ⇄
+          <span class="cycle">迭代循環</span>
+        </div>
+        <div class="mvp-role">
+          <div class="role-avatar pill-coral">B</div>
+          <h3>Builder</h3>
+          <div class="cn-title">全端執行者 · 只管「做」</div>
+          <div class="duties">
+            <span class="duty pill-coral">寫代碼</span>
+            <span class="duty pill-coral">重構</span>
+            <span class="duty pill-coral">安全審計</span>
+            <span class="duty pill-coral">CI/CD 部署</span>
+            <span class="duty pill-coral">監控維護</span>
+          </div>
+        </div>
+      </div>
+      <div class="mvp-bottom">
+        <span class="speed-tag">Story Master 說 → Builder 做 → 驗收 → 迭代 · 15 分鐘一個循環</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SLIDE 4: CLI Commands ========== -->
+  <div class="slide slide-2" data-slide="4">
+    <div class="slide-inner">
+      <div class="left-content">
+        <div class="section-pill">Core Commands</div>
+        <h2>終端機裡<br>的開發團隊</h2>
+        <p>六個核心命令，管理角色、任務、工具。不需要 UI，不需要點擊 —— 一個命令就是一個動作。支援 Claude Code 插件模式，也可以獨立啟動 MCP Server。</p>
+      </div>
+      <div class="right-visual">
+        <span class="prompt">$</span> <span class="flag">bun run dev -- roles</span>          <span class="comment">列出 18 個角色</span><br>
+        <span class="prompt">$</span> <span class="flag">bun run dev -- role</span> <span class="arg">qa-engineer</span> <span class="comment">切換當前角色</span><br>
+        <span class="prompt">$</span> <span class="flag">bun run dev -- task</span> <span class="arg">"測試登入"</span> <span class="comment">派發任務</span><br>
+        <span class="prompt">$</span> <span class="flag">bun run dev -- list</span>              <span class="comment">查看任務看板</span><br>
+        <span class="prompt">$</span> <span class="flag">bun run dev -- tools</span>             <span class="comment">列出 7 個工具</span><br>
+        <span class="prompt">$</span> <span class="flag">bun run dev -- tool</span> <span class="arg">web_search</span> <span class="comment">運行工具</span><br>
+        <span style="opacity:0.3;margin-top:0.5rem;display:block;">───────</span>
+        <span class="prompt">$</span> <span class="flag">bun run desktop-server</span>          <span class="comment">桌面 MCP</span><br>
+        <span class="prompt">$</span> <span class="flag">bun run core-tools-server</span>      <span class="comment">工具 MCP</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SLIDE 5: Tools & MCP ========== -->
+  <div class="slide slide-3" data-slide="5">
+    <div class="slide-inner">
+      <div class="slide-header">
+        <div class="header-pill">Tools & MCP</div>
+        <h2>7 個輕量工具 + 2 個 MCP Server</h2>
+        <div class="cn-desc">零框架依賴 · DuckDuckGo 免費搜尋 · macOS 原生桌面控制</div>
+      </div>
+      <div class="cards-grid">
+        <div class="card">
+          <div class="card-icon pill-lime">F</div>
+          <h3>File Tools</h3>
+          <div class="tool-list">
+            <span class="t pill-lime">read_file</span>
+            <span class="t pill-lime">write_file</span>
+            <span class="t pill-lime">list_dir</span>
+            <span class="t pill-lime">search_content</span>
+          </div>
+          <p>讀寫檔案、列出目錄、正則搜尋 —— 純 Node.js 實作，100KB 自動截斷</p>
+        </div>
+        <div class="card">
+          <div class="card-icon pill-sky">W</div>
+          <h3>Web Tools</h3>
+          <div class="tool-list">
+            <span class="t pill-sky">web_fetch</span>
+            <span class="t pill-sky">web_search</span>
+          </div>
+          <p>網頁擷取 + DuckDuckGo 搜尋，不需 API Key，15 秒超時</p>
+          <span class="highlight pill-sky" style="margin-top:0.5rem;">免費 · 零 API Key</span>
+        </div>
+        <div class="card">
+          <div class="card-icon pill-coral">M</div>
+          <h3>MCP Servers</h3>
+          <div class="tool-list">
+            <span class="t pill-coral">desktop</span>
+            <span class="t pill-coral">core-tools</span>
+          </div>
+          <p>Desktop MCP：截圖/點擊/打字/AppleScript<br>Core Tools：7 工具標準化為 MCP，任何 AI 都可調用</p>
+          <span class="highlight pill-coral" style="margin-top:0.5rem;">macOS · 零外部依賴</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SLIDE 6: Architecture Summary ========== -->
+  <div class="slide slide-summary" data-slide="6">
+    <div class="slide-inner">
+      <div class="summary-header">
+        <h2>兩種模式，一套系統</h2>
+        <p>AgentForge 不是另一個 LLM Wrapper —— 是自帶品管的 AI 開發團隊</p>
+      </div>
+      <div class="compare-grid">
+        <div class="compare-card">
+          <div class="mode-label pill-lavender">Full Team 模式</div>
+          <h3>15 角色 · 完整品管</h3>
+          <ul>
+            <li>CEO 12 步心跳狀態機 + QC Gate</li>
+            <li>Architect → PM 拆解 → Engineers 實作 → DevOps 部署 → QA 驗收</li>
+            <li>KPI 追蹤 + Observations 錯誤模式</li>
+            <li>9 個 Skills 輔助各角色</li>
+            <li>適合正式專案、公司場景展示</li>
+          </ul>
+        </div>
+        <div class="compare-card">
+          <div class="mode-label pill-yellow">MVP 模式 New</div>
+          <h3>雙人閉環 · 極速迭代</h3>
+          <ul>
+            <li>Story Master 說需求 → Builder 全端執行</li>
+            <li>寫代碼 · 重構 · 安全 · 部署 · 監控</li>
+            <li>關主驗收 → 發現錯誤 → 立刻修正</li>
+            <li>15 分鐘一個循環，適合早期驗證</li>
+            <li>適合 Side Project、快速原型</li>
+          </ul>
+        </div>
+      </div>
+      <div class="bottom-note">
+        <span class="note-pill pill-sky">7 個輕量工具</span>
+        <span class="note-pill pill-coral">2 個 MCP Server（Desktop + Core）</span>
+        <span class="note-pill pill-lime">三層知識系統（Wiki → RAG → Graph）</span>
+        <span class="note-pill pill-violet">Claude Code 插件 + 獨立 CLI</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="nav-dots">
+  <div class="nav-dot active" data-slide="1"></div>
+  <div class="nav-dot" data-slide="2"></div>
+  <div class="nav-dot" data-slide="3"></div>
+  <div class="nav-dot" data-slide="4"></div>
+  <div class="nav-dot" data-slide="5"></div>
+  <div class="nav-dot" data-slide="6"></div>
+</div>
+
+<div class="slide-counter"><span id="current">01</span> / 06</div>
+<div class="nav-hint">← → 鍵翻頁 · 6 頁 · 適合 2-3 分鐘影片展示</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const dots = document.querySelectorAll('.nav-dot');
+  const counterCurrent = document.getElementById('current');
+  let currentSlide = 1;
+  const totalSlides = slides.length;
+
+  function goToSlide(n) {
+    if (n < 1) n = totalSlides;
+    if (n > totalSlides) n = 1;
+    currentSlide = n;
+
+    slides.forEach(s => s.classList.remove('active'));
+    dots.forEach(d => d.classList.remove('active'));
+
+    const activeSlide = document.querySelector(`.slide[data-slide="${currentSlide}"]`);
+    const activeDot = document.querySelector(`.nav-dot[data-slide="${currentSlide}"]`);
+
+    if (activeSlide) activeSlide.classList.add('active');
+    if (activeDot) activeDot.classList.add('active');
+    counterCurrent.textContent = String(currentSlide).padStart(2, '0');
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+      e.preventDefault();
+      goToSlide(currentSlide + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      goToSlide(currentSlide - 1);
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      goToSlide(1);
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      goToSlide(totalSlides);
+    }
+  });
+
+  dots.forEach(dot => {
+    dot.addEventListener('click', () => {
+      goToSlide(parseInt(dot.dataset.slide));
+    });
+  });
+
+  let touchStartX = 0;
+  let touchEndX = 0;
+
+  document.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+
+  document.addEventListener('touchend', (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    const diff = touchStartX - touchEndX;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) goToSlide(currentSlide + 1);
+      else goToSlide(currentSlide - 1);
+    }
+  }, { passive: true });
+</script>
+
+</body>
+</html>

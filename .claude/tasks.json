@@ -1,0 +1,15 @@
+{
+  "currentRoleId": "ceo",
+  "taskList": [
+    {
+      "taskId": "task-1778681574130-gdgs8b",
+      "title": "設計用戶登入系統",
+      "description": "",
+      "assignedRole": "ceo",
+      "status": "pending",
+      "priority": "medium",
+      "createdAt": "2026-05-13T14:12:54.130Z"
+    }
+  ],
+  "lastUpdated": "2026-05-13T14:12:54.130Z"
+}

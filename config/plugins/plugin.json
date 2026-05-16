@@ -1,0 +1,14 @@
+{
+  "name": "agentforge-skills",
+  "skills": [
+    "./.claude/skills/engineering/grill-with-docs",
+    "./.claude/skills/engineering/diagnose",
+    "./.claude/skills/engineering/to-prd",
+    "./.claude/skills/engineering/to-issues",
+    "./.claude/skills/engineering/tdd",
+    "./.claude/skills/engineering/improve-codebase-architecture",
+    "./.claude/skills/engineering/zoom-out",
+    "./.claude/skills/productivity/caveman",
+    "./.claude/skills/productivity/handoff"
+  ]
+}

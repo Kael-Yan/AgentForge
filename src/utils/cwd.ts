@@ -1,0 +1,4 @@
+/** Project root directory */
+export function getCwd(): string {
+  return process.cwd()
+}

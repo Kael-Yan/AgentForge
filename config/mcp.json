@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "desktop": {
+      "command": "bun",
+      "args": ["run", ".claude/mcp-servers/desktop/server.ts"],
+      "description": "macOS Desktop Control MCP Server - 8 tools for screen capture, clicking, typing, app control"
+    },
+    "core-tools": {
+      "command": "bun",
+      "args": ["run", "src/mcp-servers/core-tools/server.ts"],
+      "description": "Core Tools MCP Server - 7 tools: read_file, list_dir, search_content, write_file, web_fetch, web_search"
+    }
+  }
+}

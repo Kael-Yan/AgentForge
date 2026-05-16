@@ -1,0 +1,16 @@
+{
+  "name": "agentforge-skills",
+  "author": "Kael Yan",
+  "description": "9 skills for multi-agent software development: PRD, TDD, architecture review, diagnostics, and more",
+  "skills": [
+    "./config/skills/engineering/grill-with-docs",
+    "./config/skills/engineering/diagnose",
+    "./config/skills/engineering/to-prd",
+    "./config/skills/engineering/to-issues",
+    "./config/skills/engineering/tdd",
+    "./config/skills/engineering/improve-codebase-architecture",
+    "./config/skills/engineering/zoom-out",
+    "./config/skills/productivity/caveman",
+    "./config/skills/productivity/handoff"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "AgentForge Skills",
+  "author": "Kael Yan",
+  "description": "9 engineering & productivity skills for multi-agent development — from PRD to TDD to architecture review.",
+  "skills": [
+    "engineering/grill-with-docs",
+    "engineering/diagnose",
+    "engineering/to-prd",
+    "engineering/to-issues",
+    "engineering/tdd",
+    "engineering/improve-codebase-architecture",
+    "engineering/zoom-out",
+    "productivity/caveman",
+    "productivity/handoff"
+  ]
+}
